@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import { clients, payments, findClientById } from "@/utils/mockData";
 import { Client, Payment } from "@/types";
 
@@ -21,6 +21,7 @@ const PaymentsPage = () => {
   const handleAddPayment = (paymentData: {
     clientId: string;
     amount: number;
+    nextPaymentDate?: Date;
     note?: string;
   }) => {
     const client = clientsData.find((c) => c.id === paymentData.clientId);
@@ -39,15 +40,20 @@ const PaymentsPage = () => {
       clientId: paymentData.clientId,
       amount: paymentData.amount,
       date: new Date(),
+      nextPaymentDate: paymentData.nextPaymentDate,
       note: paymentData.note,
     };
 
     setPaymentsData([...paymentsData, newPayment]);
     setShowAddPayment(false);
 
+    const paymentMessage = paymentData.nextPaymentDate 
+      ? `${paymentData.amount} FCFA payment for ${client.name} recorded. Next payment due: ${formatDate(paymentData.nextPaymentDate)}.`
+      : `${paymentData.amount} FCFA payment for ${client.name} recorded.`;
+
     toast({
       title: "Payment Recorded",
-      description: `${paymentData.amount} FCFA payment for ${client.name} recorded.`,
+      description: paymentMessage,
     });
   };
 
@@ -132,13 +138,14 @@ const PaymentsPage = () => {
                     <TableHead>Date</TableHead>
                     <TableHead>Client</TableHead>
                     <TableHead>Amount</TableHead>
+                    <TableHead>Next Payment</TableHead>
                     <TableHead>Note</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPayments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                      <TableCell colSpan={5} className="text-center py-6 text-gray-500">
                         No payments found
                       </TableCell>
                     </TableRow>
@@ -150,6 +157,16 @@ const PaymentsPage = () => {
                           <TableCell>{formatDate(payment.date)}</TableCell>
                           <TableCell>{client ? client.name : "Unknown Client"}</TableCell>
                           <TableCell>{formatCurrency(payment.amount)}</TableCell>
+                          <TableCell>
+                            {payment.nextPaymentDate ? (
+                              <div className="flex items-center gap-1 text-green-600">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>{formatDate(payment.nextPaymentDate)}</span>
+                              </div>
+                            ) : (
+                              "-"
+                            )}
+                          </TableCell>
                           <TableCell>{payment.note || "-"}</TableCell>
                         </TableRow>
                       );

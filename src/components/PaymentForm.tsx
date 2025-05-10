@@ -8,12 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Client } from "@/types";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PaymentFormProps {
   clients: Client[];
   onSave: (payment: {
     clientId: string;
     amount: number;
+    nextPaymentDate?: Date;
     note?: string;
   }) => void;
   isLoading?: boolean;
@@ -24,6 +26,13 @@ const PaymentForm = ({ clients, onSave, isLoading = false }: PaymentFormProps) =
   const [clientId, setClientId] = useState("");
   const [amount, setAmount] = useState(500); // Default to 500 FCFA
   const [note, setNote] = useState("");
+  const [isMonthlyFee, setIsMonthlyFee] = useState(false);
+
+  const calculateNextPaymentDate = (currentDate: Date): Date => {
+    const nextMonth = new Date(currentDate);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    return nextMonth;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,16 +46,25 @@ const PaymentForm = ({ clients, onSave, isLoading = false }: PaymentFormProps) =
       return;
     }
 
-    onSave({
+    const currentDate = new Date();
+    const paymentData = {
       clientId,
       amount,
       note: note.trim() ? note : undefined,
-    });
+    };
+
+    // If it's a monthly fee payment, calculate the next payment date
+    if (isMonthlyFee) {
+      paymentData.nextPaymentDate = calculateNextPaymentDate(currentDate);
+    }
+
+    onSave(paymentData);
 
     // Reset form
     setClientId("");
     setAmount(500);
     setNote("");
+    setIsMonthlyFee(false);
   };
 
   return (
@@ -85,6 +103,15 @@ const PaymentForm = ({ clients, onSave, isLoading = false }: PaymentFormProps) =
               required
             />
           </div>
+          <div className="flex items-center space-x-2 my-4">
+            <Checkbox id="monthlyFee" checked={isMonthlyFee} onCheckedChange={(checked) => setIsMonthlyFee(checked === true)} />
+            <Label htmlFor="monthlyFee" className="text-sm cursor-pointer">This is a monthly fee payment</Label>
+          </div>
+          {isMonthlyFee && (
+            <div className="p-3 bg-green-50 rounded-md text-sm">
+              <p>Next payment will be due in one month from today.</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="note">Note (Optional)</Label>
             <Textarea

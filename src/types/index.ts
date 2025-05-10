@@ -12,6 +12,7 @@ export interface Payment {
   clientId: string;
   amount: number;
   date: Date;
+  nextPaymentDate?: Date;
   note?: string;
 }
 
