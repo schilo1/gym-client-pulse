@@ -47,7 +47,12 @@ const PaymentForm = ({ clients, onSave, isLoading = false }: PaymentFormProps) =
     }
 
     const currentDate = new Date();
-    const paymentData = {
+    const paymentData: {
+      clientId: string;
+      amount: number;
+      nextPaymentDate?: Date;
+      note?: string;
+    } = {
       clientId,
       amount,
       note: note.trim() ? note : undefined,
